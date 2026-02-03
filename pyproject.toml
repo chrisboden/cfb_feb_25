@@ -1,0 +1,8 @@
+[project]
+name = "cfb-feb"
+version = "0.1.0"
+dependencies = [
+  "fastapi",
+  "claude_agent_sdk",
+  "watchfiles",
+]

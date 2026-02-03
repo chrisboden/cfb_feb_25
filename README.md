@@ -4,10 +4,12 @@ Boilerplate for building agents with the Claude Agent SDK.
 
 ## Quickstart
 
-1. Edit `.claude/CLAUDE.md` with your agent's instructions and personality
-2. Run the server: `python agent.py`
-3. Open `index.html` in your browser
-4. Chat with your agent
+1. Install deps: `make sync` (or `uv sync`)
+2. Configure env: copy `.env.example` to `.env` and fill in values
+3. Customize your agent: edit `.claude/CLAUDE.md`
+4. Run dev server with hot reload: `make dev`
+5. Open `index.html` in your browser
+6. Chat with your agent
 
 That's it. The agent will follow whatever instructions you put in `CLAUDE.md`.
 

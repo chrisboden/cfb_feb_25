@@ -10,7 +10,10 @@
         .prose pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
         .prose code { background: #f1f5f9; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; }
         .prose pre code { background: none; padding: 0; }
-        .tool-call { display: inline-block; background: #fef3c7; border-left: 3px solid #f59e0b; padding: 0.25rem 0.5rem; margin: 0.25rem 0; border-radius: 0 0.25rem 0.25rem 0; font-family: monospace; font-size: 0.75rem; color: #92400e; }
+        .tool-item { margin: 0.25rem 0; }
+        .tool-call { display: block; background: #fef3c7; border-left: 3px solid #f59e0b; padding: 0.25rem 0.5rem; border-radius: 0 0.25rem 0.25rem 0; font-family: monospace; font-size: 0.75rem; color: #92400e; cursor: pointer; }
+        .tool-call.tool-warn { background: #fee2e2; border-color: #ef4444; color: #991b1b; cursor: default; }
+        .tool-details { background: #0f172a; color: #e2e8f0; padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.25rem; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.75rem; }
         @keyframes pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
         .loading span { animation: pulse 1.4s infinite; }
         .loading span:nth-child(2) { animation-delay: 0.2s; }
@@ -28,7 +31,7 @@
         </div>
         <div class="border-t bg-white/80 p-4 backdrop-blur">
             <div class="max-w-3xl mx-auto flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
-                <input type="text" id="input" placeholder="Send a message..." onkeypress="if(event.key==='Enter')send()" class="flex-1 bg-transparent px-2 py-2 text-sm focus:outline-none">
+                <input type="text" id="input" placeholder="Send a message..." onkeypress="if(event.key==='Enter')send()" autofocus class="flex-1 bg-transparent px-2 py-2 text-sm focus:outline-none">
                 <button onclick="send()" class="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-gray-800">Send</button>
             </div>
         </div>
@@ -36,10 +39,14 @@
     <script>
         const messagesInner = document.getElementById('messagesInner');
         const input = document.getElementById('input');
+        const STORAGE_KEY = 'agentChatHistory_v1';
+        let history = [];
         marked.setOptions({ breaks: true, gfm: true });
 
         async function reset() {
             await fetch('/reset', { method: 'POST' });
+            history = [];
+            localStorage.removeItem(STORAGE_KEY);
             messagesInner.innerHTML = '<div class="text-center text-gray-400 italic py-8">Session reset</div>';
         }
 
@@ -48,7 +55,7 @@
             if (!text) return;
             input.value = '';
 
-            messagesInner.innerHTML += `<div class="flex justify-end"><div class="max-w-[75%] rounded-2xl bg-gray-900 px-4 py-2.5 text-white shadow-sm">${escapeHtml(text)}</div></div>`;
+            appendUserMessage(text, true);
 
             const loader = document.createElement('div');
             loader.className = 'flex justify-start loading';
@@ -68,11 +75,7 @@
                     if (line.startsWith('data: ') && line !== 'data: [DONE]') {
                         if (!responseDiv) {
                             loader.remove();
-                            const msg = document.createElement('div');
-                            msg.className = 'flex justify-start';
-                            msg.innerHTML = '<div class="max-w-[75%] rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-800 shadow-sm prose prose-sm"></div>';
-                            messagesInner.appendChild(msg);
-                            responseDiv = msg.querySelector('div');
+                            responseDiv = appendAssistantMessage('', false);
                         }
                         try { raw += JSON.parse(line.slice(6)); } catch { raw += line.slice(6); }
                         responseDiv.innerHTML = renderContent(raw);
@@ -80,17 +83,91 @@
                     }
                 }
             }
+
+            if (responseDiv) {
+                history.push({ role: 'assistant', text: raw });
+                saveHistory();
+            }
         }
 
         function renderContent(text) {
-            return marked.parse(text
-                .replace(/\[Using ([^\]]+)\.\.\.\]/g, '<span class="tool-call">🔧 $1</span>')
-                .replace(/\[⚠️ Permission: ([^\]]+)\]/g, '<span class="tool-call" style="background:#fee2e2;border-color:#ef4444;">⚠️ $1</span>')
-            );
+            const withToolCalls = text
+                .replace(/\[Using ([^|\]]+)\|([A-Za-z0-9+/=]+)\]/g, (_, name, b64) => {
+                    const decoded = decodeBase64Utf8(b64);
+                    const detail = formatToolInput(decoded);
+                    const safeName = escapeHtml(name);
+                    const safeDetail = escapeHtml(detail);
+                    return `\n<details class="tool-item"><summary class="tool-call">🔧 ${safeName}</summary><pre class="tool-details"><code>${safeDetail}</code></pre></details>\n`;
+                })
+                .replace(/\[Using ([^\]]+)\.\.\.\]/g, (_, name) => `\n<div class="tool-item"><span class="tool-call">🔧 ${escapeHtml(name)}</span></div>\n`)
+                .replace(/\[⚠️ Permission: ([^\]]+)\]/g, (_, name) => `\n<div class="tool-item"><span class="tool-call tool-warn">⚠️ ${escapeHtml(name)}</span></div>\n`);
+            return marked.parse(withToolCalls);
+        }
+
+        function appendUserMessage(text, persist) {
+            const msg = document.createElement('div');
+            msg.className = 'flex justify-end';
+            msg.innerHTML = `<div class="max-w-[75%] rounded-2xl bg-gray-900 px-4 py-2.5 text-white shadow-sm">${escapeHtml(text)}</div>`;
+            messagesInner.appendChild(msg);
+            if (persist) {
+                history.push({ role: 'user', text });
+                saveHistory();
+            }
+            scroll();
+        }
+
+        function appendAssistantMessage(raw, persist) {
+            const msg = document.createElement('div');
+            msg.className = 'flex justify-start';
+            msg.innerHTML = '<div class="max-w-[75%] rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-800 shadow-sm prose prose-sm"></div>';
+            const content = msg.querySelector('div');
+            content.innerHTML = renderContent(raw);
+            messagesInner.appendChild(msg);
+            if (persist) {
+                history.push({ role: 'assistant', text: raw });
+                saveHistory();
+            }
+            return content;
+        }
+
+        function saveHistory() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return;
+            try { history = JSON.parse(saved); } catch { history = []; return; }
+            messagesInner.innerHTML = '';
+            for (const msg of history) {
+                if (msg.role === 'user') appendUserMessage(msg.text, false);
+                if (msg.role === 'assistant') appendAssistantMessage(msg.text, false);
+            }
+            scroll();
+        }
+
+        function formatToolInput(raw) {
+            try {
+                const obj = JSON.parse(raw);
+                if (obj && typeof obj === 'object' && 'command' in obj) return String(obj.command);
+            } catch {}
+            return raw;
+        }
+
+        function decodeBase64Utf8(b64) {
+            try {
+                const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+                return new TextDecoder().decode(bytes);
+            } catch {
+                return b64;
+            }
         }
 
         function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
         function scroll() { messagesInner.parentElement.scrollTop = messagesInner.parentElement.scrollHeight; }
+
+        loadHistory();
+        input.focus();
     </script>
 </body>
 </html>

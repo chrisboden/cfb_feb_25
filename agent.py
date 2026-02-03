@@ -1,3 +1,4 @@
+import base64
 import json
 from pathlib import Path
 from fastapi import FastAPI, Request
@@ -67,7 +68,12 @@ async def chat(request: Request):
                         print(f"  TOOL USE: {block.name}")
                         print(f"    Input: {block.input}")
                         # Show tool usage in chat
-                        yield f"data: {json.dumps(f'[Using {block.name}...]')}\n\n"
+                        try:
+                            tool_input = json.dumps(block.input, ensure_ascii=False)
+                        except Exception:
+                            tool_input = str(block.input)
+                        encoded_input = base64.b64encode(tool_input.encode("utf-8")).decode("ascii")
+                        yield f"data: {json.dumps(f'[Using {block.name}|{encoded_input}]')}\n\n"
                     elif isinstance(block, ToolResultBlock):
                         content_preview = str(block.content)[:200] if block.content else "None"
                         print(f"  TOOL RESULT: {content_preview}...")
