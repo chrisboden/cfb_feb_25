@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html class="h-full">
+<head>
+    <title>Agent Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-full bg-gray-100 text-gray-900 antialiased">
+    <div class="flex flex-col h-full">
+        <!-- Header -->
+        <div class="sticky top-0 z-10 flex items-center justify-between border-b bg-white/80 px-4 py-3 backdrop-blur">
+            <h1 class="text-base font-semibold text-gray-900">Agent Chat</h1>
+            <button onclick="reset()" class="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                Reset
+            </button>
+        </div>
+
+        <!-- Messages -->
+        <div id="messages" class="flex-1 overflow-y-auto">
+            <div class="mx-auto w-full max-w-3xl px-4 py-6 space-y-6" id="messagesInner"></div>
+        </div>
+
+        <!-- Input -->
+        <div class="border-t bg-white/80 p-4 backdrop-blur">
+            <div class="max-w-3xl mx-auto">
+                <div class="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                    <input
+                        type="text"
+                        id="input"
+                        placeholder="Send a message..."
+                        onkeypress="if(event.key==='Enter')send()"
+                        class="flex-1 bg-transparent px-2 py-2 text-sm focus:outline-none"
+                    >
+                    <button
+                        onclick="send()"
+                        class="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors">
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messagesInner = document.getElementById('messagesInner');
+        const input = document.getElementById('input');
+
+        async function reset() {
+            await fetch('/reset', { method: 'POST' });
+            messagesInner.innerHTML = '<div class="text-center text-gray-400 italic py-8">Session reset - starting fresh conversation</div>';
+        }
+
+        async function send() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            // User message
+            messagesInner.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="max-w-[75%] rounded-2xl bg-gray-900 px-4 py-2.5 text-white shadow-sm">
+                        ${escapeHtml(text)}
+                    </div>
+                </div>`;
+            input.value = '';
+
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let assistantMsg = null;
+            let responseDiv = null;
+
+            function ensureAssistantMessage() {
+                if (assistantMsg) return;
+                assistantMsg = document.createElement('div');
+                assistantMsg.className = 'flex justify-start';
+                assistantMsg.innerHTML = '<div class="max-w-[75%] rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-800 shadow-sm leading-relaxed"></div>';
+                messagesInner.appendChild(assistantMsg);
+                responseDiv = assistantMsg.querySelector('div');
+            }
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                        try {
+                            const text = JSON.parse(line.slice(6));
+                            ensureAssistantMessage();
+                            responseDiv.innerHTML += escapeHtml(text).replace(/\n/g, '<br>');
+                        } catch {
+                            ensureAssistantMessage();
+                            responseDiv.innerHTML += escapeHtml(line.slice(6));
+                        }
+                    }
+                }
+                messagesInner.parentElement.scrollTop = messagesInner.parentElement.scrollHeight;
+            }
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+    </script>
+</body>
+</html>
