@@ -2,6 +2,32 @@
 
 Boilerplate for building agents with the Claude Agent SDK.
 
+## Quickstart
+
+1. Edit `.claude/CLAUDE.md` with your agent's instructions and personality
+2. Run the server: `python agent.py`
+3. Open `index.html` in your browser
+4. Chat with your agent
+
+That's it. The agent will follow whatever instructions you put in `CLAUDE.md`.
+
+### What the Agent Can Do (Out of the Box)
+
+By default, the agent has full coding capabilities:
+- **Read & search files** - navigate and understand any codebase
+- **Edit & write files** - make changes, create new files
+- **Run shell commands** - execute builds, tests, git operations
+- **Search the web** - fetch documentation, look up APIs
+- **Ask clarifying questions** - interactive back-and-forth
+
+### Adding Skills
+
+Drop skill folders into `.claude/skills/` to give your agent specialist knowledge. Skills are markdown docs the agent can reference for specific tasks (e.g., SDK documentation, coding standards, domain knowledge).
+
+### Optional: Use OpenRouter
+
+To use models via OpenRouter instead of your Claude Code account, see [Using OpenRouter](#using-openrouter-instead-of-claude-code-account) below.
+
 ## For Coding Agents
 
 This codebase is a minimal reference implementation. Your job is to extend it.

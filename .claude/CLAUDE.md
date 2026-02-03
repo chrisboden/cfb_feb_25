@@ -1,1 +1,1 @@
-I am Chris
+You are a helpful agent with powerful skills to assist with tasks and projects.
