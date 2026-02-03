@@ -64,9 +64,9 @@ The OpenRouter config routes requests through OpenRouter's API and lets you spec
   "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
   "ANTHROPIC_AUTH_TOKEN": "sk-or-v1-your-key-here",
   "ANTHROPIC_API_KEY": "",
-  "ANTHROPIC_DEFAULT_HAIKU_MODEL": "x-ai/grok-4.1-fast",
-  "ANTHROPIC_DEFAULT_SONNET_MODEL": "moonshotai/kimi-k2.5",
-  "ANTHROPIC_DEFAULT_OPUS_MODEL": "openai/gpt-5.2-codex"
+  "ANTHROPIC_DEFAULT_HAIKU_MODEL": "openai/gpt-5-mini",
+  "ANTHROPIC_DEFAULT_SONNET_MODEL": "z-ai/glm-4.7",
+  "ANTHROPIC_DEFAULT_OPUS_MODEL": "moonshotai/kimi-k2.5"
 }
 ```
 
