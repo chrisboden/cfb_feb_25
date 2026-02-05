@@ -1,15 +1,13 @@
 # Claude Agent SDK Starter
 
-Boilerplate for building agents with the Claude Agent SDK.
+Minimal starter for building agents with the Claude Agent SDK.
 
 ## Quickstart
 
-1. Install deps: `make sync` (or `uv sync`)
-2. Configure env: copy `.env.example` to `.env` and fill in values
-3. Customize your agent: edit `.claude/CLAUDE.md`
-4. Run dev server with hot reload: `make dev`
-5. Open `index.html` in your browser
-6. Chat with your agent
+1. Install deps: `python -m pip install -r requirements.txt`
+2. Run the server: `python agent.py`
+3. Open `index.html` in your browser
+4. Chat with your agent
 
 That's it. The agent will follow whatever instructions you put in `CLAUDE.md`.
 
@@ -26,10 +24,6 @@ By default, the agent has full coding capabilities:
 
 Drop skill folders into `.claude/skills/` to give your agent specialist knowledge. Skills are markdown docs the agent can reference for specific tasks (e.g., SDK documentation, coding standards, domain knowledge).
 
-### Optional: Use OpenRouter
-
-To use models via OpenRouter instead of your Claude Code account, see [Using OpenRouter](#using-openrouter-instead-of-claude-code-account) below.
-
 ## For Coding Agents
 
 This codebase is a minimal reference implementation. Your job is to extend it.
@@ -38,12 +32,12 @@ This codebase is a minimal reference implementation. Your job is to extend it.
 
 - `agent.py` - FastAPI server wrapping the Claude Agent SDK
 - `index.html` - Basic chat UI for testing
-- `.claude/settings.json` - **All configuration lives here** (permissions, allowed tools, env vars, API routing)
+- `.claude/settings_agent.json` - **All configuration lives here** (permissions, allowed tools, env vars, API routing).
 - `.claude/CLAUDE.md` - Project context injected into agent system prompt
 
-### Configuration via settings.json
+### Configuration via settings_agent.json
 
-Do not hardcode permissions or tool lists in `agent.py`. All config is managed in `.claude/settings.json`:
+Do not hardcode permissions or tool lists in `agent.py`. All config is managed in `.claude/settings_agent.json`:
 
 - `permissions.default` - Permission mode (`acceptEdits`, `default`, `bypassPermissions`)
 - `permissions.allow` - Explicitly allowed tools
@@ -54,23 +48,11 @@ Do not hardcode permissions or tool lists in `agent.py`. All config is managed i
 
 By default, the agent uses your Claude Code account. To use models via OpenRouter instead:
 
-1. Copy the contents of `.claude/settings_openrouter.json` into `.claude/settings.json`
-2. Replace `sk-or-v1-...` with your actual OpenRouter API key
+1. Open `agent.py`
+2. Set `USE_OPENROUTER = True`
+3. Make sure `.claude/settings_agent_openrouter.json` has your OpenRouter API key and models
 
-The OpenRouter config routes requests through OpenRouter's API and lets you specify which models to use:
-
-```json
-"env": {
-  "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
-  "ANTHROPIC_AUTH_TOKEN": "sk-or-v1-your-key-here",
-  "ANTHROPIC_API_KEY": "",
-  "ANTHROPIC_DEFAULT_HAIKU_MODEL": "openai/gpt-5-mini",
-  "ANTHROPIC_DEFAULT_SONNET_MODEL": "z-ai/glm-4.7",
-  "ANTHROPIC_DEFAULT_OPUS_MODEL": "moonshotai/kimi-k2.5"
-}
-```
-
-You can swap in any OpenRouter-supported models for haiku/sonnet/opus tiers.
+You can swap in any OpenRouter-supported models for haiku/sonnet/opus tiers in `.claude/settings_agent_openrouter.json`.
 
 ### Useful Skills
 
@@ -84,7 +66,7 @@ Use these to understand the SDK and CLI:
 ```
 User → index.html → FastAPI /chat → claude_agent_sdk.query() → Claude (or OpenRouter)
                                             ↓
-                              .claude/settings.json (permissions, tools, API routing)
+                              .claude/settings_agent*.json (permissions, tools, API routing)
                               .claude/CLAUDE.md (project context)
 ```
 
