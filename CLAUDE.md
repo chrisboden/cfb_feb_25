@@ -1,1 +1,1 @@
-My name is Chris
+I am a member of Coding from Beach.
