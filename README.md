@@ -36,15 +36,35 @@ All config is managed in `.claude/settings_agent.json`:
 - `permissions.deny` - Blocked paths/operations
 - `env` - Environment variables for API routing (optional)
 
-### Using OpenRouter Instead of Claude Code Account
 
-By default, the agent uses your Claude Code account. To use models via OpenRouter instead:
+## Using Anthropic API or OpenRouter Instead of Claude Code Account
+
+### Use your default Claude Code account
+
+By default, the agent uses your Claude Code account.
 
 1. Open `agent.py`
-2. Set `USE_OPENROUTER = True`
+2. Set `SETTINGS_PROFILE = "claude"`
+
+
+### Using Anthropic API Instead of Claude Code Account
+
+By default, the agent uses your Claude Code account. 
+
+1. Open `agent.py`
+2. Set `SETTINGS_PROFILE = "anthropic"`
+3. Make sure `.claude/settings_agent_anthropic.json` has your `ANTHROPIC_API_KEY`
+
+### Using OpenRouter
+
+To use models via OpenRouter instead:
+
+1. Open `agent.py`
+2. Set `SETTINGS_PROFILE = "openrouter"`
 3. Make sure `.claude/settings_agent_openrouter.json` has your OpenRouter API key and models
 
 You can swap in any OpenRouter-supported models for haiku/sonnet/opus tiers in `.claude/settings_agent_openrouter.json`.
+
 
 ## Building on this Codebase
 

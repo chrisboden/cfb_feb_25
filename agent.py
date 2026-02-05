@@ -13,11 +13,14 @@ app = FastAPI()
 
 SETTINGS_AGENT_PATH = ".claude/settings_agent.json"
 SETTINGS_AGENT_OPENROUTER_PATH = ".claude/settings_agent_openrouter.json"
-# Normie toggle: set to True to use OpenRouter, False to use native Claude Code.
-USE_OPENROUTER = True
-ACTIVE_SETTINGS_PATH = (
-    SETTINGS_AGENT_OPENROUTER_PATH if USE_OPENROUTER else SETTINGS_AGENT_PATH
-)
+SETTINGS_AGENT_ANTHROPIC_PATH = ".claude/settings_agent_anthropic.json"
+# Normie toggle: set to "claude", "openrouter", or "anthropic".
+SETTINGS_PROFILE = "anthropic"
+ACTIVE_SETTINGS_PATH = {
+    "claude": SETTINGS_AGENT_PATH,
+    "openrouter": SETTINGS_AGENT_OPENROUTER_PATH,
+    "anthropic": SETTINGS_AGENT_ANTHROPIC_PATH,
+}[SETTINGS_PROFILE]
 
 current_client: ClaudeSDKClient | None = None
 current_session_id: str | None = None
