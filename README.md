@@ -13,31 +13,23 @@ That's it. The agent will follow whatever instructions you put in `CLAUDE.md`.
 
 ### What the Agent Can Do (Out of the Box)
 
-By default, the agent has full coding capabilities:
+By default, the agent uses your underlying Claude Code account and out of the box, it the default Claude Code capabilities.
+
 - **Read & search files** - navigate and understand any codebase
 - **Edit & write files** - make changes, create new files
 - **Run shell commands** - execute builds, tests, git operations
 - **Search the web** - fetch documentation, look up APIs
 - **Ask clarifying questions** - interactive back-and-forth
 
+## Customising the Agent
+
 ### Adding Skills
 
 Drop skill folders into `.claude/skills/` to give your agent specialist knowledge. Skills are markdown docs the agent can reference for specific tasks (e.g., SDK documentation, coding standards, domain knowledge).
 
-## For Coding Agents
-
-This codebase is a minimal reference implementation. Your job is to extend it.
-
-### Key Files
-
-- `agent.py` - FastAPI server wrapping the Claude Agent SDK
-- `index.html` - Basic chat UI for testing
-- `.claude/settings_agent.json` - **All configuration lives here** (permissions, allowed tools, env vars, API routing).
-- `.claude/CLAUDE.md` - Project context injected into agent system prompt
-
 ### Configuration via settings_agent.json
 
-Do not hardcode permissions or tool lists in `agent.py`. All config is managed in `.claude/settings_agent.json`:
+All config is managed in `.claude/settings_agent.json`:
 
 - `permissions.default` - Permission mode (`acceptEdits`, `default`, `bypassPermissions`)
 - `permissions.allow` - Explicitly allowed tools
@@ -54,12 +46,14 @@ By default, the agent uses your Claude Code account. To use models via OpenRoute
 
 You can swap in any OpenRouter-supported models for haiku/sonnet/opus tiers in `.claude/settings_agent_openrouter.json`.
 
-### Useful Skills
+## Building on this Codebase
 
-Use these to understand the SDK and CLI:
+### Key Files
 
-- `/cc-agent-sdk` - Claude Agent SDK documentation (Python/TypeScript API, permissions, sessions, MCP, hooks)
-- `/cc-know-thyself` - Claude Code CLI documentation (tools, settings, slash commands)
+- `agent.py` - FastAPI server wrapping the Claude Agent SDK
+- `index.html` - Basic chat UI for testing
+- `.claude/settings_agent.json` - All configuration lives here (permissions, allowed tools, env vars, API routing).
+- `.claude/CLAUDE.md` - Project context injected into agent system prompt
 
 ### Architecture
 
@@ -86,4 +80,9 @@ Minimal working chat harness with:
 - Tool usage visibility in chat
 - Permission issue surfacing
 
-Ready for extension.
+### Useful Skills
+
+The repo ships with these skills to give your coding agent the relevant docs for the Claude Agent SDK and Claude Code CLI:
+
+- `/cc-agent-sdk` - Claude Agent SDK documentation (Python/TypeScript API, permissions, sessions, MCP, hooks)
+- `/cc-know-thyself` - Claude Code CLI documentation (tools, settings, slash commands)
