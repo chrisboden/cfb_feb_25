@@ -4,7 +4,7 @@ Minimal starter for building agents with the Claude Agent SDK.
 
 ## Quickstart
 
-1. Install deps: `python -m pip install -r requirements.txt`
+1. Install deps: `pip install -r requirements.txt`
 2. Run the server: `python agent.py`
 3. Open `index.html` in your browser
 4. Chat with your agent
@@ -13,7 +13,7 @@ That's it. The agent will follow whatever instructions you put in `CLAUDE.md`.
 
 ### What the Agent Can Do (Out of the Box)
 
-By default, the agent uses your underlying Claude Code account and out of the box, it the default Claude Code capabilities.
+By default, the agent uses your underlying Claude Code account and out of the box, it has the default Claude Code capabilities.
 
 - **Read & search files** - navigate and understand any codebase
 - **Edit & write files** - make changes, create new files
